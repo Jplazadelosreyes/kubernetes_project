@@ -1,3 +1,4 @@
+[![Despliegue de Prueba en Minikube](https://github.com/Jplazadelosreyes/kubernetes_proyect/actions/workflows/test.yml/badge.svg)](https://github.com/Jplazadelosreyes/kubernetes_proyect/actions/workflows/test.yml)
 # 🚀 Aplicación Full-Stack con Kubernetes
 
 Una aplicación web de ejemplo de tres capas diseñada para demostrar el despliegue y gestión de aplicaciones con Docker Compose y Kubernetes.
