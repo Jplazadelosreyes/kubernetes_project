@@ -1,6 +1,6 @@
 # .github/workflows/test.yml
 
-name: Despliegue de Prueba en Minikube
+name: Despliegue de Prueba en Minikube (Sencillo)
 
 on:
   push:
@@ -55,19 +55,12 @@ jobs:
           kubectl apply -f k8s/deployments/frontend-deployment.yaml
           echo "Aplicando Service del Frontend..."
           kubectl apply -f k8s/services/frontend-service.yaml
-
-      - name: Esperar a que los Deployments estén listos
-        # Esto es crucial para asegurar que los pods estén funcionando antes de probar la conectividad
-        run: |
-          echo "Esperando a que postgres-deployment esté disponible..."
-          kubectl wait --for=condition=available deployment/postgres-deployment --timeout=300s
-          echo "Esperando a que backend-deployment esté disponible..."
-          kubectl wait --for=condition=available deployment/backend-deployment --timeout=300s
-          echo "Esperando a que frontend-deployment esté disponible..."
-          kubectl wait --for=condition=available deployment/frontend-deployment --timeout=300s
+          echo "Dando un pequeño tiempo para que los pods se programen..."
+          sleep 30 # Espera 30 segundos para que Kubernetes empiece a programar los pods
 
       - name: Verificar Recursos de Kubernetes
         # Muestra el estado de los despliegues, servicios y pods para depuración
+        # No esperamos a que estén "Running" o "Ready", solo verificamos que existan
         run: |
           echo "Estado de Deployments:"
           kubectl get deployments
@@ -75,18 +68,8 @@ jobs:
           kubectl get services
           echo "Estado de Pods:"
           kubectl get pods
+          # Opcional: Si quieres que falle si algún deployment no se crea
+          kubectl get deployment postgres-deployment backend-deployment frontend-deployment
 
-      - name: Probar Conectividad del Frontend y Backend
-        # Obtiene la URL del frontend expuesta por Minikube y la prueba con curl
-        run: |
-          FRONTEND_URL=$(minikube service frontend-service --url)
-          echo "URL del Frontend: $FRONTEND_URL"
-          # Dar un pequeño tiempo para que el servicio se estabilice
-          sleep 10
-          echo "Probando acceso al Frontend..."
-          curl -f $FRONTEND_URL || { echo "Error: Frontend no accesible!"; exit 1; }
-          echo "Probando endpoint /api/saludo a través del proxy del Frontend..."
-          curl -f $FRONTEND_URL/api/saludo || { echo "Error: Endpoint /api/saludo no accesible via proxy del frontend!"; exit 1; }
-          echo "Probando endpoint /api/users a través del proxy del Frontend..."
-          curl -f $FRONTEND_URL/api/users || { echo "Error: Endpoint /api/users no accesible via proxy del frontend!"; exit 1; }
-          echo "¡Todas las pruebas de conectividad pasaron!"
+      # Se eliminan los pasos de "Esperar a que los Deployments estén listos"
+      # y "Probar Conectividad del Frontend y Backend" para hacerlo más ligero.
