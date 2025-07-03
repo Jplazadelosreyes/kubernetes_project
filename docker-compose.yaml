@@ -1,0 +1,50 @@
+# mi-proyecto/docker-compose.yaml
+version: '3.8'
+
+services:
+  # Servicio de Backend (Node.js)
+  backend:
+    build:
+      context: ./backend
+    container_name: mi-app-backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: proyect_kubernetes
+      DB_PORT: 5432
+    # No hay 'volumes' de código fuente aquí, ya que el código se copia en el Dockerfile
+
+  # Servicio de Frontend (Vue con Nginx)
+  frontend:
+    build:
+      context: ./frontend
+    container_name: mi-app-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      VITE_APP_BACKEND_URL: http://backend:3000
+
+  # Servicio de Base de Datos (PostgreSQL 16)
+  db:
+    image: postgres:16-alpine # ¡Cambiado a PostgreSQL 16!
+    container_name: mi-app-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: proyect_kubernetes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - db_data:/var/lib/postgresql/data
+
+# Definición de volúmenes con nombre para la persistencia de datos de la DB
+volumes:
+  db_data:

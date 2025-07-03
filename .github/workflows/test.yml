@@ -1,0 +1,92 @@
+# .github/workflows/test.yml
+
+name: Despliegue de Prueba en Minikube
+
+on:
+  push:
+    branches:
+      - main # Ejecuta este workflow cada vez que se haga un push a la rama 'main'
+  pull_request:
+    branches:
+      - main # También lo puedes ejecutar en Pull Requests a 'main'
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest # Ejecuta el job en una máquina virtual Ubuntu
+
+    steps:
+      - name: Checkout del Código
+        uses: actions/checkout@v4 # Obtiene tu código del repositorio
+
+      - name: Configurar Minikube
+        uses: medyagh/setup-minikube@master # Configura Minikube en el runner
+        with:
+          kubernetes-version: '1.28.0' # Puedes especificar la versión de Kubernetes si lo deseas
+
+      - name: Habilitar el Daemon Docker de Minikube
+        # Esto asegura que las imágenes se construyan directamente en el entorno Docker de Minikube
+        run: |
+          eval $(minikube docker-env)
+
+      - name: Construir Imagen Docker del Backend
+        # Construye la imagen del backend y la etiqueta para que Minikube la encuentre
+        run: docker build -t mi-app-backend:latest ./backend
+
+      - name: Construir Imagen Docker del Frontend
+        # Construye la imagen del frontend y la etiqueta para que Minikube la encuentre
+        run: docker build -t mi-app-frontend:latest ./frontend
+
+      - name: Aplicar Manifiestos de Kubernetes
+        # Aplica todos los archivos YAML en el orden correcto
+        run: |
+          echo "Aplicando PVC..."
+          kubectl apply -f k8s/pvcs/postgres-pvc.yaml
+          echo "Aplicando ConfigMap de PostgreSQL..."
+          kubectl apply -f k8s/configmaps/postgres-initdb-config.yaml
+          echo "Aplicando Deployment de PostgreSQL..."
+          kubectl apply -f k8s/deployments/postgres-deployment.yaml
+          echo "Aplicando Service de PostgreSQL..."
+          kubectl apply -f k8s/services/postgres-service.yaml
+          echo "Aplicando Deployment del Backend..."
+          kubectl apply -f k8s/deployments/backend-deployment.yaml
+          echo "Aplicando Service del Backend..."
+          kubectl apply -f k8s/services/backend-service.yaml
+          echo "Aplicando Deployment del Frontend..."
+          kubectl apply -f k8s/deployments/frontend-deployment.yaml
+          echo "Aplicando Service del Frontend..."
+          kubectl apply -f k8s/services/frontend-service.yaml
+
+      - name: Esperar a que los Deployments estén listos
+        # Esto es crucial para asegurar que los pods estén funcionando antes de probar la conectividad
+        run: |
+          echo "Esperando a que postgres-deployment esté disponible..."
+          kubectl wait --for=condition=available deployment/postgres-deployment --timeout=300s
+          echo "Esperando a que backend-deployment esté disponible..."
+          kubectl wait --for=condition=available deployment/backend-deployment --timeout=300s
+          echo "Esperando a que frontend-deployment esté disponible..."
+          kubectl wait --for=condition=available deployment/frontend-deployment --timeout=300s
+
+      - name: Verificar Recursos de Kubernetes
+        # Muestra el estado de los despliegues, servicios y pods para depuración
+        run: |
+          echo "Estado de Deployments:"
+          kubectl get deployments
+          echo "Estado de Services:"
+          kubectl get services
+          echo "Estado de Pods:"
+          kubectl get pods
+
+      - name: Probar Conectividad del Frontend y Backend
+        # Obtiene la URL del frontend expuesta por Minikube y la prueba con curl
+        run: |
+          FRONTEND_URL=$(minikube service frontend-service --url)
+          echo "URL del Frontend: $FRONTEND_URL"
+          # Dar un pequeño tiempo para que el servicio se estabilice
+          sleep 10
+          echo "Probando acceso al Frontend..."
+          curl -f $FRONTEND_URL || { echo "Error: Frontend no accesible!"; exit 1; }
+          echo "Probando endpoint /api/saludo a través del proxy del Frontend..."
+          curl -f $FRONTEND_URL/api/saludo || { echo "Error: Endpoint /api/saludo no accesible via proxy del frontend!"; exit 1; }
+          echo "Probando endpoint /api/users a través del proxy del Frontend..."
+          curl -f $FRONTEND_URL/api/users || { echo "Error: Endpoint /api/users no accesible via proxy del frontend!"; exit 1; }
+          echo "¡Todas las pruebas de conectividad pasaron!"

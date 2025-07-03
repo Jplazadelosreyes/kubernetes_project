@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend # Selecciona los Pods que tienen la etiqueta 'app: frontend'
+  type: NodePort # Permite acceder al servicio desde fuera del clúster usando la IP del nodo y un puerto asignado
+  ports:
+    - protocol: TCP
+      port: 80         # El puerto del Service (lo que el Ingress o otros Pods usarán)
+      targetPort: 80   # El puerto del contenedor al que se dirige el tráfico
+      nodePort: 30080  # Opcional: Puedes especificar un puerto NodePort fijo (entre 30000-32767)
+      # Si no lo especificas, Kubernetes asignará uno aleatoriamente.

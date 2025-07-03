@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend
+spec:
+  replicas: 1 # Puedes aumentar esto a 2 o más si necesitas escalar tu backend
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: mi-app-backend:latest # ¡El nombre de la imagen que construiste!
+          imagePullPolicy: Never # Importante para Minikube: no intentes descargarla de un registro externo
+          ports:
+            - containerPort: 3000 # El puerto en el que tu app Node.js escucha
+          env: # Variables de entorno para la conexión a la base de datos
+            - name: NODE_ENV
+              value: "production"
+            - name: DB_HOST
+              value: "postgres-service" # Nombre del Service de la base de datos en Kubernetes
+            - name: DB_USER
+              value: "postgres"
+            - name: DB_PASSWORD
+              value: "postgres"
+            - name: DB_NAME
+              value: "proyect_kubernetes"
+            - name: DB_PORT
+              value: "5432"

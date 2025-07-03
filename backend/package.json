@@ -1,0 +1,23 @@
+{
+  "name": "mi-app-backend",
+  "version": "1.0.0",
+  "description": "Backend de mi aplicación con Node.js y Express",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "backend",
+    "kubernetes",
+    "minikube"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "cors": "^2.8.5"
+  }
+}

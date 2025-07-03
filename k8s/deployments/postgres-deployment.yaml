@@ -1,0 +1,43 @@
+# k8s/deployments/postgres-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment # Nombre del Deployment
+  labels:
+    app: postgres
+spec:
+  replicas: 1 # Generalmente 1 réplica para bases de datos relacionales simples
+  selector:
+    matchLabels:
+      app: postgres # Selecciona los Pods con esta etiqueta
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine # ¡Usamos la versión 16!
+          imagePullPolicy: IfNotPresent # Descarga la imagen si no está presente localmente
+          ports:
+            - containerPort: 5432 # El puerto por defecto de PostgreSQL
+          env:
+            # Estas variables deben coincidir con las que usas en tu backend
+            - name: POSTGRES_DB
+              value: "proyect_kubernetes" # Nombre de la base de datos
+            - name: POSTGRES_USER
+              value: "postgres"           # Usuario
+            - name: POSTGRES_PASSWORD
+              value: "postgres"           # Contraseña
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data # Ruta donde Postgres guarda sus datos
+            - name: postgres-initdb-volume
+              mountPath: /docker-entrypoint-initdb.d # Para tu init.sql
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim # Conecta con el PVC que definimos antes
+        - name: postgres-initdb-volume
+          configMap:
+            name: postgres-initdb-config # Conecta con el ConfigMap para el init.sql

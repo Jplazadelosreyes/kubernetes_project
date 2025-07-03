@@ -1,0 +1,13 @@
+# k8s/pvcs/postgres-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim # Nombre de la solicitud de volumen persistente
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce # Solo puede ser montado por un nodo a la vez (común para bases de datos)
+  resources:
+    requests:
+      storage: 1Gi # Solicita 1 Gigabyte de almacenamiento

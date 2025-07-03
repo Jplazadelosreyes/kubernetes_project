@@ -1,0 +1,14 @@
+# k8s/services/postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service # Este será el nombre de host para el backend (DB_HOST)
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres # Selecciona los Pods que tienen la etiqueta 'app: postgres'
+  ports:
+    - protocol: TCP
+      port: 5432       # El puerto del Service
+      targetPort: 5432 # El puerto del contenedor al que se dirige el tráfico

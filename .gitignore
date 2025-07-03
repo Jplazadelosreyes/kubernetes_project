@@ -1,0 +1,72 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+dist/
+build/
+.cache/
+.parcel-cache/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker
+*.dockerignore
+*.env
+.docker/
+docker-compose.override.yml # Si lo usas para configuraciones locales
+
+# Kubernetes
+.minikube/
+.kube/
+*.kubeconfig
+
+# Database
+*.sql # Generalmente no se versionan los dumps o backups
+data/ # Si tienes una carpeta de datos local para la DB
+
+# IDE-specific files
+.idea/
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# NPM package manager cache
+.npm/
+
+# Yarn package manager cache
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.yml
+.pnp.*
+
+# Vite specific
+.vite/
+
+# Vue CLI specific
+.temp/
+.cache/
